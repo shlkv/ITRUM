@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Tracker</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        max-width: 800px;
+        margin: auto;
+    }
+    .task {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        margin-top: 5px;
+    }
+    .strike {
+        text-decoration: line-through;
+    }
+    .hidden {
+        display: none;
+    }
+    .deleted-list {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+<h1>Task Tracker</h1>
+<input type="text" id="inputTask">
+<button id="addTask">Добавить</button>
+<button id="deleteSelected" class="hidden">Удалить</button>
+<button id="selectAll">Выделить все</button>
+<div id="taskList"></div>
+<hr>
+<button id="showDeleted">Корзина</button>
+<div id="deletedTaskList" class="deleted-list hidden"></div>
+<script>
+    const inputTask = document.getElementById('inputTask');
+    const addTaskBtn = document.getElementById('addTask');
+    const deleteSelectedBtn = document.getElementById('deleteSelected');
+    const selectAllBtn = document.getElementById('selectAll');
+    const taskList = document.getElementById('taskList');
+    const deletedTaskList = document.getElementById('deletedTaskList');
+    const showDeletedBtn = document.getElementById('showDeleted');
+
+    let deletedTasks = [];
+
+    function createTaskElement(taskText) {
+        const taskDiv = document.createElement('div');
+        taskDiv.classList.add('task');
+        taskDiv.innerHTML = `<input type="checkbox" class="task-checkbox"> ${taskText}`;
+
+        taskDiv.addEventListener('click', (e) => {
+            if (e.target.classList.contains('task-checkbox')) {
+                e.target.checked ? taskDiv.classList.add('strike') : taskDiv.classList.remove('strike');
+                deleteSelectedBtn.classList.remove('hidden');
+            }
+        });
+
+        return taskDiv;
+    }
+
+    addTaskBtn.addEventListener('click', () => {
+        if (!inputTask.value) return;
+
+        const taskText = inputTask.value;
+        const taskDiv = createTaskElement(taskText);
+        taskList.appendChild(taskDiv);
+        inputTask.value = '';
+    });
+
+    deleteSelectedBtn.addEventListener('click', () => {
+        const tasks = taskList.querySelectorAll('.task');
+
+        tasks.forEach(task => {
+            if (task.querySelector('.task-checkbox').checked) {
+                task.remove();
+                deletedTasks.push(task.textContent.trim());
+            }
+        });
+
+        deleteSelectedBtn.classList.add('hidden');
+    });
+
+    selectAllBtn.addEventListener('click', () => {
+        const tasks = taskList.querySelectorAll('.task');
+        tasks.forEach(task => {
+            task.querySelector('.task-checkbox').checked = true;
+            task.classList.add('strike');
+        });
+        deleteSelectedBtn.classList.remove('hidden');
+    });
+
+    showDeletedBtn.addEventListener('click', () => {
+        // Очистить текущий список удаленных задач
+        deletedTaskList.innerHTML = '';
+
+        // Создать и добавить задачи из массива удаленных задач
+        deletedTasks.forEach(taskText => {
+            const taskDiv = createTaskElement(taskText);
+            taskDiv.innerHTML += ' <button class="return-btn">Восстановить</button>';
+            taskDiv.querySelector('.return-btn').addEventListener('click', () => {
+                taskDiv.remove();
+                taskList.appendChild(createTaskElement(taskText));
+                deletedTasks = deletedTasks.filter((t) => t !== taskText);
+            });
+            deletedTaskList.appendChild(taskDiv);
+        });
+
+        deletedTaskList.classList.toggle('hidden');
+        showDeletedBtn.classList.toggle('strike');
+    });
+
+</script>
+</body>
+</html>
